@@ -1,0 +1,756 @@
+DROP DATABASE IF EXISTS lanhouse;
+CREATE DATABASE lanhouse
+DEFAULT CHARACTER SET utf8
+DEFAULT COLLATE utf8_general_ci;
+
+USE lanhouse;
+
+CREATE TABLE `lanhouse`.`cliente` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `cpf` VARCHAR(14) NOT NULL,
+    `nome` VARCHAR(30) NOT NULL,
+    `sobrenome` VARCHAR(30) NOT NULL,
+    `email` VARCHAR(30) NOT NULL,
+    `genero` ENUM('F', 'M') NOT NULL,
+    `telefone` VARCHAR(14),
+    `celular` VARCHAR(15) NOT NULL,
+    `dataCadastro` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `desativado` BOOL NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (`id` , `cpf`),
+    UNIQUE INDEX `UNIQUE_CLIENTE` (`cpf`)
+)  CHARSET=latin1 COLLATE = latin1_general_cs;
+
+CREATE TABLE `lanhouse`.`usuario` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `login` VARCHAR(20) NOT NULL,
+    `senha` VARCHAR(30) NOT NULL,
+    `cliente` int(8) not null,
+    PRIMARY KEY (`id` , `login`),
+    UNIQUE INDEX `UNIQUE_LOGIN` (`login`),
+     CONSTRAINT `FK_USUARIOCLIENTE` FOREIGN KEY (`cliente`)
+        REFERENCES `lanhouse`.`cliente` (`id`)
+)  CHARSET=latin1 COLLATE = latin1_general_cs;
+
+create table `lanhouse`.`bancodehoras` (
+	id int auto_increment,
+    usuarioId int,
+    hora int,
+    minuto int,
+    segundo int,
+    CONSTRAINT FK_Usuario FOREIGN KEY (usuarioId) REFERENCES usuario(id),
+	primary key (id)
+)
+
+select * from estacao
+drop table estacao
+create table `lanhouse`.`estacao` (
+		id int(2) AUTO_INCREMENT,
+		ip varchar(255) not null,
+		descricao varchar(255) not null,
+		manutencao bool default false,
+		UNIQUE (id),
+		PRIMArY KEY(ip)
+	)
+
+CREATE TABLE `lanhouse`.`caixa` (
+    `id` INT(8) NOT NULL DEFAULT 1,
+    `status` ENUM('ABERTO', 'FECHADO') NOT NULL DEFAULT 'FECHADO',
+    `valor` FLOAT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`aberturaCaixa` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `data_hora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `valorAtribuido` FLOAT NOT NULL DEFAULT 0,
+    `usuario` VARCHAR(50) NOT NULL,
+    PRIMARY KEY (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`fechamentoCaixa` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `data_hora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `valorRetirado` FLOAT NOT NULL DEFAULT 0,
+    `motivoFechamento` VARCHAR(50) NOT NULL,
+    `usuario` VARCHAR(50) NOT NULL,
+    PRIMARY KEY (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+
+CREATE TABLE `lanhouse`.`cargo` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `nome` VARCHAR(50) NOT NULL,
+    PRIMARY KEY (`id` , `nome`),
+    UNIQUE INDEX `UNIQUE_NOMECARGO` (`nome`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+
+CREATE TABLE `lanhouse`.`fornecedor` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `cnpj` VARCHAR(18) NOT NULL,
+    `nome` VARCHAR(40) NOT NULL,
+    `razaoSocial` VARCHAR(40) NOT NULL,
+    `cep` VARCHAR(10) NOT NULL,
+    `logradouro` VARCHAR(60) NOT NULL,
+    `numero` VARCHAR(10) NOT NULL,
+    `complemento` VARCHAR(50) DEFAULT NULL,
+    `bairro` VARCHAR(40) NOT NULL,
+    `cidade` VARCHAR(30) NOT NULL,
+    `estado` CHAR(2) NOT NULL,
+    `email` VARCHAR(40) NOT NULL,
+    `telefone` VARCHAR(14),
+    `celular` VARCHAR(15) NOT NULL,
+    `desativado` BOOL NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (`id` , `cnpj`),
+    UNIQUE INDEX `UNIQUE_CNPJ` (`cnpj`),
+    UNIQUE INDEX `UNIQUE_NOME` (`nome`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`tipoEquipamento` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `tipo` VARCHAR(30) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `UNIQUE` (`tipo`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+
+CREATE TABLE `lanhouse`.`equipamento` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `descricao` VARCHAR(30) NOT NULL,
+    `valor` FLOAT NOT NULL,
+    `fornecedor` INT(8) NOT NULL,
+    `dataFabricacao` DATE NOT NULL,
+    `garantia` INT(3) NOT NULL DEFAULT 0,
+    `tipo` INT(8) NOT NULL,
+    PRIMARY KEY (`id` , `descricao`),
+    UNIQUE INDEX `UNIQUE_DESCEQUIPAMENTO` (`descricao`),
+    CONSTRAINT `FK_FORNECEDOREQUIP` FOREIGN KEY (`fornecedor`)
+        REFERENCES `lanhouse`.`fornecedor` (`id`),
+    CONSTRAINT `FK_TIPOEQUIP` FOREIGN KEY (`tipo`)
+        REFERENCES `lanhouse`.`tipoEquipamento` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+
+drop table login
+drop table logout
+
+CREATE TABLE `lanhouse`.`login` (
+    `id` INT(8) NOT NULL DEFAULT 1,
+    `data_hora` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `usuario` INT(8) NOT NULL,
+    `estacao` int(8) not null,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `FK_USUARIOLOGIN` FOREIGN KEY (`usuario`)
+        REFERENCES `lanhouse`.`usuario` (`id`),
+	CONSTRAINT `FK_ESTACAOLOGIN` FOREIGN KEY (`estacao`)
+        REFERENCES `lanhouse`.`estacao` (`id`)
+)  CHARSET=latin1 COLLATE = latin1_general_cs;
+
+CREATE TABLE `lanhouse`.`logout` (
+    `id` INT(8) NOT NULL DEFAULT 1,
+    `data_hora` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `usuario` INT(8) NOT NULL,
+    `estacao` int(8) not null,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `FK_USUARIOLOGOUT` FOREIGN KEY (`usuario`)
+        REFERENCES `lanhouse`.`usuario` (`id`),
+	CONSTRAINT `FK_ESTACAOLOGOUT` FOREIGN KEY (`estacao`)
+        REFERENCES `lanhouse`.`estacao` (`id`)
+)  CHARSET=latin1 COLLATE = latin1_general_cs;
+
+CREATE TABLE `lanhouse`.`estoqueEquipamento` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `equipamento` INT(8) NOT NULL,
+    `quantidade` INT(8) NOT NULL,
+    `dataEntrada` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id` , `equipamento`),
+    UNIQUE INDEX `UNIQUE_CODEQUIPAMENTO` (`equipamento`),
+    CONSTRAINT `FK_ESTOQUEEQUIPAMENTO` FOREIGN KEY (`equipamento`)
+        REFERENCES `lanhouse`.`equipamento` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`equipamentoManutencao` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `equipamento` INT(8) NOT NULL,
+    `quantidade` INT(8) NOT NULL,
+    `dataEntrada` DATETIME DEFAULT CURRENT_TIMESTAMP,
+	`defeito` varchar(30) not null,
+    PRIMARY KEY (`id`, `equipamento`),
+    CONSTRAINT `FK_MANUTENCAOEQUIP` FOREIGN KEY (`equipamento`)
+        REFERENCES `lanhouse`.`equipamento` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`retiraequipamentoManutencao` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `equipamento` INT(8) NOT NULL,
+    `quantidade` INT(8) NOT NULL,
+    PRIMARY KEY (`id`, `equipamento`),
+    CONSTRAINT `FK_MANUTENCAOEQUIPamento` FOREIGN KEY (`equipamento`)
+        REFERENCES `lanhouse`.`equipamento` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`funcionario` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `cpf` VARCHAR(14) NOT NULL,
+    `nome` VARCHAR(30) NOT NULL,
+    `sobrenome` VARCHAR(30) NOT NULL,
+    `dataAdmissao` DATE NOT NULL,
+    `email` VARCHAR(50) NOT NULL,
+    `cep` VARCHAR(10) NOT NULL,
+    `logradouro` VARCHAR(40) NOT NULL,
+    `numero` VARCHAR(10) NOT NULL,
+    `complemento` VARCHAR(60) DEFAULT NULL,
+    `bairro` VARCHAR(30) NOT NULL,
+    `cidade` VARCHAR(20) NOT NULL,
+    `estado` CHAR(2) NOT NULL,
+    `cargo` INT(8) NOT NULL,
+    `telefone` VARCHAR(14),
+    `salario` FLOAT NOT NULL,
+    `celular` VARCHAR(15) NOT NULL,
+    `desativado` BOOL NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (`id` , `cpf`),
+    UNIQUE INDEX `UNIQUE_CPFFUNCIONARIO` (`cpf`),
+    CONSTRAINT `FK_CARGO` FOREIGN KEY (`cargo`)
+        REFERENCES `lanhouse`.`cargo` (`id`)
+) CHARSET=latin1 COLLATE = latin1_general_cs;
+
+CREATE TABLE `lanhouse`.`usuarioFuncionario` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `login` VARCHAR(20) NOT NULL,
+    `senha` VARCHAR(30) NOT NULL,
+    `funcionario` INT(10) NOT NULL,
+    PRIMARY KEY (`id` , `login`),
+    CONSTRAINT `FK_LOGINCFUNC` FOREIGN KEY (`funcionario`)
+        REFERENCES `lanhouse`.`funcionario` (`id`),
+    UNIQUE INDEX `UNIQUE_LOGIN` (`login`)
+)  CHARSET=latin1 COLLATE = latin1_general_cs;
+
+CREATE TABLE `lanhouse`.`loginFuncionario` (
+    `id` INT(8) auto_increment not null,
+    `data_hora` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `usuario` INT(8) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `FK_FUNCIONARIOLOGIN` FOREIGN KEY (`usuario`)
+        REFERENCES `lanhouse`.`usuarioFuncionario` (`id`)
+)  CHARSET=latin1 COLLATE = latin1_general_cs;
+
+CREATE TABLE `lanhouse`.`logoutFuncionario` (
+    `id` INT(8) auto_increment not null,
+    `data_hora` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `usuario` INT(8) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `FK_FUNCIONARIOLOGOUT` FOREIGN KEY (`usuario`)
+        REFERENCES `lanhouse`.`usuarioFuncionario` (`id`)
+)  CHARSET=latin1 COLLATE = latin1_general_cs;
+
+CREATE TABLE `lanhouse`.`servico` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `descricao` VARCHAR(30) NOT NULL,
+    `valor` FLOAT NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `UNIQUE_DESCSERVICO` (`descricao`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+insert into servico(descricao, valor)
+values('Aluguel', '2');
+
+CREATE TABLE `lanhouse`.`aluguel` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `tempo` DECIMAL(5 , 3 ) NOT NULL,
+    `servico` INT(8) NOT NULL DEFAULT 1,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `FK_SERVICO` FOREIGN KEY (`servico`)
+        REFERENCES `lanhouse`.`servico` (`id`) 
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`venda` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `data_hora` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `total` FLOAT NOT NULL,
+    `status` ENUM('PAGA', 'PENDENTE') NOT NULL DEFAULT 'PENDENTE',
+    `cliente` INT(8) NOT NULL,
+    `funcionario` INT(8) NOT NULL,
+    `servicos` VARCHAR(100) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `FK_CLIENTEATIVIDADE` FOREIGN KEY (`cliente`)
+        REFERENCES `lanhouse`.`cliente` (`id`),
+    CONSTRAINT `FK_FUNCIONARIOATIVIDADE` FOREIGN KEY (`funcionario`)
+        REFERENCES `lanhouse`.`funcionario` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`compra` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `descricao` varchar(80) not null,
+    `data_hora` DATETIME NOT NULL,
+    `dataVencimento` DATE NOT NULL,
+    `valor` FLOAT NOT NULL,
+    `status` ENUM('PAGA', 'PENDENTE') NOT NULL DEFAULT 'PENDENTE',
+    `fornecedor` INT(8) NOT NULL,
+    `funcionario` INT(8) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `FK_FORNECEDORCOMPRA` FOREIGN KEY (`fornecedor`)
+        REFERENCES `lanhouse`.`fornecedor` (`id`),
+    CONSTRAINT `FK_FUNCIONARIOCOMPRA` FOREIGN KEY (`funcionario`)
+        REFERENCES `lanhouse`.`funcionario` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+
+
+CREATE TABLE `lanhouse`.`entradaCaixa` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `dataHora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `valor` FLOAT NOT NULL,
+    `funcionario` INT(8) NOT NULL,
+    `venda` INT(8) NOT NULL,
+    PRIMARY KEY (`id` , `venda`),
+    UNIQUE INDEX `UNIQUE_ATIVIDADE` (`venda`),
+    CONSTRAINT `FK_ENTRADACAIXA` FOREIGN KEY (`venda`)
+        REFERENCES `lanhouse`.`venda` (`id`),
+    CONSTRAINT `FK_FUNCIONARIO` FOREIGN KEY (`funcionario`)
+        REFERENCES `lanhouse`.`funcionario` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`saidaCaixa` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `dataHora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `valor` FLOAT NOT NULL,
+    `funcionario` INT(8) NOT NULL,
+    `compra` INT(8) NOT NULL,
+    PRIMARY KEY (`id` , `compra`),
+    UNIQUE INDEX `UNIQUE_ATIVIDADE` (`compra`),
+    CONSTRAINT `fk_funcSAIDA` FOREIGN KEY (`funcionario`)
+        REFERENCES `lanhouse`.`funcionario` (`id`),
+    CONSTRAINT `FK_COMPRASAIDA` FOREIGN KEY (`compra`)
+        REFERENCES `lanhouse`.`compra` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`pagamentoDivida` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `dataHora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `compra` INT(8) NOT NULL,
+    `tipo` ENUM('EXTERNO', 'CAIXA') NOT NULL,
+    `funcionario` INT(8) NOT NULL,
+    `valor` FLOAT NOT NULL,
+    PRIMARY KEY (`id` , `compra`),
+    UNIQUE INDEX `UNIQUE_ATIVIDADE` (`compra`),
+    CONSTRAINT `FK_FUNCPGMT` FOREIGN KEY (`funcionario`)
+        REFERENCES `lanhouse`.`funcionario` (`id`),
+    CONSTRAINT `FK_COMPRAPGMT` FOREIGN KEY (`compra`)
+        REFERENCES `lanhouse`.`compra` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+CREATE TABLE `lanhouse`.`recebimento` (
+    `id` INT(8) NOT NULL AUTO_INCREMENT,
+    `dataHora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `venda` INT(8) NOT NULL,
+    `tipo` ENUM('DEBITO', 'CREDITO', 'DINHEIRO') NOT NULL,
+    `valorPago` FLOAT NOT NULL,
+    `troco` FLOAT NOT NULL,
+    `funcionario` INT(8) NOT NULL,
+    PRIMARY KEY (`id` , `venda`),
+    UNIQUE INDEX `UNIQUE_VENDA` (`venda`),
+    CONSTRAINT `FK_FUNCRECEBIMENTO` FOREIGN KEY (`funcionario`)
+        REFERENCES `lanhouse`.`funcionario` (`id`),
+    CONSTRAINT `FK_VENDARECEBIMENTO` FOREIGN KEY (`venda`)
+        REFERENCES `lanhouse`.`venda` (`id`)
+)  CHARSET=UTF8 COLLATE = UTF8_GENERAL_CI;
+
+DELIMITER $$
+ 
+CREATE TRIGGER TG_ABERTURACAIXA 
+AFTER INSERT ON aberturaCaixa
+FOR EACH ROW BEGIN
+UPDATE caixa SET STATUS = 'ABERTO', valor = valor + NEW.valorAtribuido; 
+END $$;
+
+DELIMITER $$
+ 
+CREATE TRIGGER TG_FECHAMENTOCAIXA 
+AFTER INSERT ON fechamentoCaixa
+FOR EACH ROW BEGIN
+UPDATE caixa SET STATUS = 'FECHADO', valor = valor - NEW.valorRetirado; 
+END $$
+
+DELIMITER $$
+ 
+CREATE TRIGGER TG_ENTRADACAIXA
+AFTER INSERT ON recebimento
+FOR EACH ROW BEGIN
+insert into entradaCaixa(valor, funcionario, venda)
+values(new.valorPago - new.troco, new.funcionario, new.venda);
+UPDATE venda SET STATUS = 'PAGA' where id= NEW.venda; 
+update caixa set valor = valor + (new.valorPago - new.troco);
+delete from pagamentoPendente where venda = new.venda;
+END $$
+
+
+
+DELIMITER $$
+ 
+CREATE TRIGGER TG_SAIDACAIXA
+AFTER INSERT ON pagamentoDivida
+FOR EACH ROW BEGIN
+insert into saidaCaixa(valor, funcionario, compra)
+values(new.valor, new.funcionario, new.compra);
+UPDATE compra SET STATUS = 'PAGA' where id= NEW.compra; 
+update caixa set valor = valor - new.valor;
+delete from contaPendente where compra = new.compra;
+END $$
+
+DELIMITER $$
+ 
+CREATE TRIGGER TG_DIMINUIDEVIDOMANUTENCAO
+AFTER INSERT ON equipamentomanutencao
+FOR EACH ROW BEGIN
+UPDATE estoqueequipamento set quantidade = quantidade - new.quantidade where equipamento = new.equipamento; 
+END $$
+
+DELIMITER $$
+ 
+CREATE TRIGGER TG_AUMENTODEVIDORETIRADEMANUTENCAO
+AFTER INSERT ON retiraequipamentomanutencao
+FOR EACH ROW BEGIN
+UPDATE estoqueequipamento set quantidade = quantidade + new.quantidade where equipamento = new.equipamento; 
+END $$
+
+DELIMITER $$
+
+
+select * from cliente
+
+INSERT INTO `cliente`(cpf, nome, sobrenome, email, genero, telefone, celular)
+VALUES
+('472.856.988-81','José Luis','Freire da Silva','jose.silva1463@etec.sp.gov.br','M','(11) 2016-9188','(11) 96425-5145')
+,('490.065.758-10','João Vitor','Inocencio','joaoinocencio@hotmail.com','M','(11) 2022-9188','(11) 93012-7102')
+,('052.719.338-06','Gabriel','Pinheiro','GabrielPinheiro@hotmail.com','M','(11) 2022-1342','(11) 94244-1032')
+,('497.160.648-37','Gustavo','Rodrigues','GustavoRodriguees@hotmail.com','M','(11) 2022-3122','(11) 98493-1393')
+,('085.992.600-14','Manuel','Lacerda','Lacerdinha@gmail.com','M','(11) 2242-2424','(11) 92494-2424')
+,('554.544.590-03','Franklyn','Lima','fhh@gmail.com','M','(11) 4245-2424','(11) 92494-5824')
+,('297.135.720-17','Marcolino','Lopes','marcolino@gmail.com','M','(11) 6465-2424','(11) 94254-5824')
+,('423.820.190-69','Milena','Lopes','milena@gmail.com','F','(11) 6265-2424','(11) 96254-5824')
+,('075.140.200-12','Nadia','Lopes','Nadia@gmail.com','F','(11) 6285-2664','(11) 98954-5824')
+,('003.452.580-70','Adriana','Silva','Adrianasilva@gmail.com','F','(11) 7575-2324','(11) 98435-6494')
+,('907.104.350-96','Mirela','Silva','Mirela@gmail.com','F','(11) 7585-2664','(11) 92354-6464')
+,('399.543.480-00','Erica','Silva','erica@gmail.com','F','(11) 2234-2684','(11) 99699-6424')
+,('205.982.570-98','Erica','Sata','ericaSata@gmail.com','F','(11) 2299-2994','(11) 94569-8696')
+,('146.232.960-83','Francisca','Sata','FranciscaSata@gmail.com','F','(11) 2965-1111','(11) 99659-0000')
+,('011.328.710-00','Francisca','Silva','FranciscaSilva@gmail.com','F','(11) 2395-3351','(11) 98686-0060')
+,('735.790.590-09','Alexia','Carla','alexia@gmail.com','F','(11) 6964-4251','(11) 96466-1060')
+,('762.171.780-79','Carla','Alexia','carla@gmail.com','F','(11) 4291-4242','(11) 94234-4244')
+,('229.581.030-21','Kenny','Germ','kenny@gmail.com','M','(11) 5391-4242','(11) 94454-0244')
+,('982.489.030-01','Danilo','Germ','dan@gmail.com','M','(10) 5353-4242','(10) 94854-0244')
+,('846.888.890-70','Danilo','Gentili','danGentili@gmail.com','M','(11) 6463-4212','(11) 95630-0244')
+,('088.368.810-76','Danilo','Kaduta','kaduta@gmail.com','M','(11) 6346-4212','(11) 76875-0244')
+,('186.567.660-82','Jair','Bolsonaro','Bolsonaro@gmail.com','M','(11) 6747-4212','(11) 96465-0244')
+,('581.903.180-63','Carlos','Bolsonaro','CarlosBolsonaro@gmail.com','M','(11) 8696-4212','(11) 96465-8657')
+,('950.601.530-96','Renan','Bolsonaro','renanBolsonaro@gmail.com','M','(11) 5635-4212','(11) 98135-8657')
+,('566.146.800-80','Laura','Bolsonaro','lauraBolsonaro@gmail.com','F','(11) 3244-4212','(11) 98135-8657')
+,('540.851.260-67','Gabriel','Barros','gabrielbarros@gmail.com','M','(11) 6946-4212','(11) 97476-8657')
+,('677.994.850-00','Valdete','Barros','valdetebarros@gmail.com','F','(11) 4926-4212','(11) 74907-8657')
+,('683.928.540-55','Francisca','Barros','franciscabarros@gmail.com','F','(11) 4746-4212','(11) 75464-8657')
+,('507.184.480-06','Carla','Barros','cabarros@gmail.com','F','(11) 4234-2212','(11) 29524-8657')
+,('462.204.660-12','Vania','Barros','vania@gmail.com','F','(21) 4534-2212','(11) 74693-8657')
+,('865.122.400-14','josias','Barros','josias@gmail.com','M','(11) 5954-6962','(11) 75479-8657')
+,('398.746.840-89','Joao','Barros','joaoBarros@gmail.com','M','(11) 4779-6962','(11) 95219-8657')
+,('571.585.590-09','Joao','Vitor','joaoVitor@gmail.com','M','(11) 5935-2491','(13) 83519-8657')
+,('268.119.810-08','Joao','Pedro','joaopedro@gmail.com','M','(11) 5355-2491','(13) 69349-8657')
+,('356.002.530-36','Joao','Carlos','joaocarlos@gmail.com','M','(21) 6365-2491','(53) 57789-8657')
+,('023.690.940-10','Joao','Pedro','joaopedroo@gmail.com','M','(71) 5355-2064','(73) 75757-8657')
+,('546.816.930-49','Joao','Vitor','joaoVitor14@gmail.com','M','(61) 5905-2491','(53) 64669-8657')
+,('323.411.620-29','Jose','Lopes','joseLop@gmail.com','M','(65) 7575-2491','(33) 96369-8657')
+,('907.976.360-80','Barney','Lopes','barney@gmail.com','M','(45) 5467-2491','(33) 96839-8657')
+,('089.714.680-84','Ted','Lopes','ted@gmail.com','M','(75) 4667-2491','(33) 94245-8657')
+,('114.900.590-40','Tedy','Lopes','tedy@gmail.com','M','(64) 7527-2491','(13) 96865-8607')
+,('995.384.210-86','Morsbi','Lopes','morsbi@gmail.com','M','(14) 6346-2491','(49) 95635-8607')
+,('294.114.800-04','Maria','Lopes','mariaL@gmail.com','F','(24) 4564-2491','(90) 63466-8607')
+,('817.181.760-23','Maria','Fernanda','mariaF@gmail.com','F','(54) 3556-2491','(11) 35566-8607')
+,('776.657.270-26','Maria','Pera','mariapera@gmail.com','F','(42) 3457-2491','(11) 39767-8607')
+,('838.571.990-32','Maria','Aparecida','mariaa@gmail.com','F','(22) 5356-2491','(15) 63638-8607')
+,('587.187.840-70','Maria','Aparecida','mariaaparecida@gmail.com','F','(24) 5746-2491','(15) 75338-8607')
+,('654.736.250-70','Maria','Pimentel','mariaPimentel@gmail.com','F','(32) 5754-2491','(35) 63468-8607')
+,('085.163.320-04','Maria','luiza','marialuiza@gmail.com','F','(32) 3654-2491','(35) 75368-8607')
+,('035.943.210-70','Maria','Paula','mariapaula@gmail.com','F','(24) 6633-2491','(65) 52598-8607')
+,('683.098.380-00','Jovem','Dex','jovemD@gmail.com','M','(14) 2693-2491','(25) 23628-8607')
+,('889.027.400-05','Matue','Tue','Matue@gmail.com','M','(35) 1931-2491','(11) 26728-8607')
+,('896.610.230-18','Lil','Raff','ganggang@gmail.com','M','(25) 6361-2491','(11) 42468-8607')
+,('405.537.210-89','Pedro','Vitor','pedroVit@gmail.com','M','(45) 6368-2491','(11) 53668-8607')
+,('996.327.890-67','Pedro','Lopes','pedroLopes@gmail.com','M','(34) 4464-2491','(11) 52668-8607')
+,('065.987.570-53','Pedro','Guilherme','pedroGuilherme@gmail.com','M','(42) 3636-2491','(11) 56436-8607')
+,('951.402.790-61','Pedro','Kell','pedroKell@gmail.com','M','(22) 3747-2491','(11) 26566-8607')
+,('689.495.310-46','Leandro','Carlos','Leandroh@gmail.com','M','(24) 7547-2491','(55) 36366-8607')
+,('171.764.390-60','Leandro','Carlos','LeandroCarlos@gmail.com','M','(24) 7367-2491','(11) 36346-8607')
+,('622.094.550-65','Lucas','Carlos','LucasCarlos@gmail.com','M','(31) 2525-2491','(11) 42420-8607')
+,('409.222.960-73','Lucas','Silva','LucasSilva@gmail.com','M','(31) 2527-2491','(11) 66650-8607')
+,('236.862.890-83','Lucas','Antunes','LucasAntu@gmail.com','M','(11) 2527-2424','(11) 63856-8607')
+,('917.372.790-37','Lucas','Bore','LucasBore@gmail.com','M','(19) 6267-2424','(11) 94256-8607')
+,('110.338.690-58','Lucas','Jesus','LucasJesus@gmail.com','M','(11) 5252-2424','(11) 25466-8607')
+,('327.864.740-86','Lucas','Marcelo','LucasMarcelo@gmail.com','M','(11) 2647-2424','(11) 67936-8607')
+,('226.162.330-53','Lucas','Carlos','LucasMc@gmail.com','M','(11) 5277-2424','(11) 84646-8607')
+,('427.038.870-60','Lucas','Mendes','LucasMendes@gmail.com','M','(11) 6375-2424','(11) 93456-8607')
+,('482.694.810-76','Lucas','Francisco','LucasFrancisco@gmail.com','M','(11) 6377-2334','(11) 96586-8607')
+,('522.768.160-07','Lucas','Marques','LucasMarques@gmail.com','M','(11) 6377-2334','(11) 96586-8607')
+,('471.655.650-60','Igor','Marques','igorMarques@gmail.com','M','(11) 5256-2334','(11) 85676-8607')
+,('866.513.360-70','Igor','Rodrigues','igorrod@gmail.com','M','(11) 5256-2386','(11) 54256-8607')
+,('963.593.690-79','Igor','Carlos','igorcarlos@gmail.com','M','(11) 5353-3814','(11) 93596-8607')
+,('902.753.670-88','Igor','Henrique','igorhenrique@gmail.com','M','(11) 6483-3814','(11) 25696-8607')
+,('945.185.550-58','Higor','Henrique','higorhenrique@gmail.com','M','(11) 4293-3814','(11) 56076-8607')
+,('168.675.190-75','Mateus','Henrique','mateushenrique@gmail.com','M','(11) 5353-3814','(11) 94276-8607')
+,('121.566.350-13','Matheus','Henrique','matheushenrique@gmail.com','M','(11) 7789-3714','(11) 94376-8756')
+,('787.874.060-71','Matheus','Moreira','matheusmoreira@gmail.com','M','(11) 6367-3714','(11) 92896-8756')
+,('185.626.030-58','Matheus','Lucas','matheuslucas@gmail.com','M','(11) 5367-3714','(11) 92894-8756')
+,('155.536.020-33','Matheus','Lucas','matheusl@gmail.com','M','(11) 5637-3754','(11) 92634-8756')
+,('334.977.880-15','Joao','Henrique','joaoHenrique@gmail.com','M','(11) 5368-3714','(11) 96084-8756')
+,('635.495.350-31','Henrique','Souza','henr@gmail.com','M','(11) 2124-3714','(11) 97588-8756')
+,('288.628.950-70','Henrique','Lacerda','henrLacer@gmail.com','M','(11) 2567-3744','(11) 97578-6676')
+,('442.554.980-59','Henrique','Manenti','henrManent@gmail.com','M','(11) 5367-3744','(11) 96378-6676')
+,('478.975.290-96','Henrique','Alves','henralves@gmail.com','M','(11) 4256-3744','(11) 95355-6676')
+,('479.119.320-26','Henrique','Dario','henrdario@gmail.com','M','(11) 4476-3744','(11) 95879-6476')
+,('016.889.460-20','Henrique','Silva','henrSilva@gmail.com','M','(11) 4536-3744','(11) 96889-6476')
+,('671.396.460-58','Henrique','Guilherme','henrguilher@gmail.com','M','(11) 4664-3744','(11) 64679-6476')
+,('708.319.470-04','Paulo','Guilherme','Pauloguilher@gmail.com','M','(11) 6467-3744','(11) 93679-6476')
+,('867.226.440-14','Paulo','Jesus','PauloJesus@gmail.com','M','(11) 7547-3734','(11) 97909-6476')
+,('484.466.450-68','Paulo','Roberto','Pauloroberto@gmail.com','M','(11) 5357-3566','(11) 97654-6476')
+,('800.908.350-00','Paulo','Francisco','PauloJf@gmail.com','M','(11) 3647-3734','(11) 97364-6476')
+,('759.813.180-58','Paulo','Lucas','Paulolucas@gmail.com','M','(11) 5357-3734','(11) 90068-6476')
+,('056.639.000-04','Paulo','Silva','Paulosilva@gmail.com','M','(11) 1415-3734','(11) 90568-6476')
+,('151.097.580-26','Paula','Fernandes','Paulafernandes@gmail.com','F','(11) 3567-3734','(11) 90395-6476')
+,('783.808.190-47','Paula','Fernanda','Paulafernanda@gmail.com','F','(11) 3417-3734','(11) 93458-6456')
+,('934.192.710-26','Paula','Maria','Paulamaria@gmail.com','F','(11) 2347-3734','(11) 93835-6458')
+,('659.748.420-73','Paula','Souza','Paulass@gmail.com','F','(11) 2275-3734','(11) 93735-6458')
+,('004.612.660-08','Paula','Nicole','Paulasnicole@gmail.com','F','(11) 6365-3734','(11) 93755-6458')
+,('491.476.430-05','Leticia','Nicole','leticia@gmail.com','F','(11) 5565-3734','(11) 33355-6458')
+,('372.242.220-54','Leticia','Moura','leticiamoure@gmail.com','F','(11) 6366-3734','(11) 34234-6458')
+,('079.689.300-49','Leticia','Souza','leticiasouza@gmail.com','F','(11) 3666-3734','(11) 33434-6458')
+,('317.804.300-43','Leticia','Silva','leticiasilva@gmail.com','F','(11) 5353-3574','(11) 35254-6358')
+,('538.345.260-53','Leticia','Lacerda','leticial@gmail.com','F','(11) 2343-3574','(11) 45777-6358')
+,('288.737.300-51','Leticia','Freire','leticiaF@gmail.com','F','(11) 4343-3557','(11) 45777-6538')
+,('189.472.180-22','Leticia','Sassi','leticias@gmail.com','F','(11) 2345-3559','(11) 45997-6599')
+,('750.535.300-41','Leticia','Manenti','leticiaManent@gmail.com','F','(11) 2345-3559','(11) 42557-6599')
+,('606.176.360-36','Leticia','Fonseca','leticiafonseca@gmail.com','F','(11) 2244-3559','(11) 12344-6599')
+,('615.770.650-34','Laura','Martins','lamartns@gmail.com','F','(11) 4254-3559','(11) 22334-6599')
+,('316.412.460-06','Laura','Silva','laurass@gmail.com','F','(11) 2352-3559','(11) 94284-6599')
+,('193.459.080-05','Laura','Souza','laurassouza@gmail.com','F','(11) 2582-3559','(11) 94888-6599')
+,('031.683.540-40','Laura','Souza','laurasouza@gmail.com','F','(11) 2282-3369','(11) 92459-5025')
+,('431.431.330-74','Fernanda','Ribeiro','fer@gmail.com','F','(11) 2677-3375','(11) 92459-8888')
+,('586.282.380-85','Fernanda','Silva','ferSilva@gmail.com','F','(11) 2577-3375','(11) 97547-8888')
+,('392.057.000-61','Fernanda','Satiko','ferSsata@gmail.com','F','(11) 5566-3375','(11) 92456-8888')
+,('081.769.490-00','Fernanda','Rodrigues','ferodrigues@gmail.com','F','(11) 6366-3375','(11) 92757-8888')
+,('918.600.660-62','Fernanda','Pereria','ferpp@gmail.com','F','(11) 2525-3665','(11) 96667-8888')
+,('658.538.150-59','Fernanda','key','ferkey@gmail.com','F','(11) 2626-3765','(11) 96667-6668')
+,('991.122.650-63','Bianca','Blanco','bb@gmail.com','F','(11) 2424-3765','(11) 25567-6668')
+,('172.848.920-21','Bianca','Souza','bsouza@gmail.com','F','(11) 2257-3765','(11) 78547-6668')
+,('082.483.350-38','Bianca','Albuquerque','biancaab@gmail.com','F','(11) 4447-3765','(11) 75356-6668')
+,('555.965.890-12','Bianca','Silva','biansilva@gmail.com','F','(11) 4242-3965','(11) 19304-6668')
+,('778.227.180-02','Bianca','Santos','biansantos@gmail.com','F','(11) 3213-9393','(11) 92155-6668')
+,('823.199.680-08','Bianca','Flanco','bianflanco@gmail.com','F','(11) 2555-9393','(11) 34435-6668')
+,('497.261.570-21','Bianca','Conte','bianConte@gmail.com','F','(11) 2111-9393','(11) 32225-6668')
+,('631.665.750-14','Bianca','Fontes','bianFontes@gmail.com','F','(11) 1111-9393','(11) 31111-6668')
+,('361.837.590-58','Bianca','Roberta','bianRoberta@gmail.com','F','(11) 2111-9393','(11) 24111-6668')
+,('075.761.300-40','Marta','Roberta','martaroberta@gmail.com','F','(11) 1131-9393','(11) 22511-6668')
+,('094.956.490-72','Cristiane','Ronaldo','cristiane@gmail.com','F','(11) 1456-9393','(11) 17377-6668')
+,('151.734.040-35','Pavao','pavao','pavao@gmail.com','M','(11) 2344-9393','(11) 31447-6778')
+,('023.595.530-20','Alcides','Unc','alcides@gmail.com','M','(11) 2252-9393','(11) 36547-6768')
+,('152.653.360-01','Juliano','Func','julinas@gmail.com','M','(11) 2262-9363','(11) 36547-9968')
+,('743.041.150-90','Cleber','Func','cleber@gmail.com','M','(11) 2555-9363','(11) 36797-9968')
+,('658.425.230-27','Josivan','Func','josivan@gmail.com','M','(11) 5255-9363','(11) 36457-9968')
+,('229.505.120-70','Naito','Func','naito@gmail.com','M','(11) 2525-9563','(11) 35555-9968')
+,('573.127.700-10','Carla','Sabrina','carlasabo@gmail.com','F','(11) 2236-9573','(11) 37777-9968')
+,('811.881.610-91','Adriana','Sabrina','adrianabo@gmail.com','F','(11) 2555-9573','(11) 33667-9968')
+,('750.946.600-80','Adriana','Andrade','adrianandrade@gmail.com','F','(11) 4242-9573','(11) 37767-9968')
+,('645.552.820-43','Adriana','Rodrigues','adrianarodrigues@gmail.com','F','(11) 6366-9573','(11) 42490-9968')
+,('450.968.990-04','Adriana','Marques','adrianams@gmail.com','F','(11) 5256-9573','(11) 44640-9968')
+,('084.233.380-02','Adriana','Souza','adrianasouza@gmail.com','F','(11) 6366-9573','(11) 25255-9968')
+,('114.725.430-33','Adriana','Silva','adrianasilva@gmail.com','F','(11) 6266-9573','(11) 25255-7458')
+,('099.014.880-79','Larrisa','Silva','laasilva@gmail.com','F','(11) 6266-7773','(11) 25255-7265')
+,('968.538.720-61','Larrisa','Lacerda','laalacerda@gmail.com','F','(11) 4244-7773','(11) 21155-7265')
+,('328.784.890-98','Larrisa','Pereira','laapereira@gmail.com','F','(11) 5254-7666','(11) 21155-5555')
+,('078.889.110-30','Larrisa','Pereira','laapereira@gmail.com','F','(11) 5254-7526','(11) 21445-5355')
+,('549.363.590-92','Larrisa','Fonseca','lafonseca@gmail.com','F','(11) 5254-2226','(11) 21445-2555')
+,('924.283.700-81','Larrisa','Manca','lamanca@gmail.com','F','(11) 4244-2226','(11) 21445-2666')
+,('023.553.540-06','Fernando','Lopes','ffffff@gmail.com','M','(11) 4444-2446','(11) 21445-2446')
+,('352.334.600-25','Fernando','Fontes','fontes@gmail.com','M','(11) 3553-2446','(11) 22345-2546')
+,('979.878.770-69','Fernando','Silva','fsilva@gmail.com','M','(11) 2223-2446','(11) 94245-2546')
+,('751.571.360-72','Fernando','Roberto','fstoberta@gmail.com','M','(11) 6477-2446','(11) 43545-2546')
+,('963.957.200-40','Fernando','Ramundo','feRmundo@gmail.com','M','(31) 6637-2446','(11) 66665-2546')
+,('154.434.360-40','Justin','Bieber','biebver@gmail.com','M','(31) 4205-2446','(11) 60005-2546')
+,('089.518.590-37','Roberto','Carlos','robert@gmail.com','M','(31) 5356-2446','(11) 60645-2546')
+,('241.991.290-06','Cristiano','Ronaldo','ronaldo@gmail.com','M','(31) 5353-2546','(11) 60645-2446')
+,('252.395.830-99','Pele','Xuxa','pele@gmail.com','M','(31) 5359-2000','(11) 60945-2888')
+,('357.365.600-54','Michael','Jackson','mj@gmail.com','M','(31) 5677-2000','(11) 67999-2888')
+,('313.540.210-02','Michael','Jackson','mj@gmail.com','M','(31) 5677-2000','(11) 67999-2888')
+,('224.783.340-38','Michael','Jordan','jordan@gmail.com','M','(22) 6366-2000','(11) 67677-2888')
+,('595.149.570-91','Neymar','Ney','Neymar@gmail.com','M','(22) 1111-2000','(11) 61111-2888')
+,('465.956.290-54','Ricardo','Donizetii','ricardod@gmail.com','M','(22) 1234-2000','(11) 61345-2888')
+,('456.648.170-03','Ricardo','Silva','ricardos@gmail.com','M','(11) 1444-2000','(11) 61355-2888')
+,('909.171.450-62','Ricardo','Franca','ricardoFranc@gmail.com','M','(11) 2355-2000','(11) 66467-2888')
+,('425.192.570-08','Ricardo','Rocha','ricardorocha@gmail.com','M','(11) 5355-2000','(11) 66535-2888')
+,('844.541.120-96','Ricardo','Rubens','ricardoribes@gmail.com','M','(11) 5535-2000','(11) 66735-2888')
+,('714.665.440-07','Ricardo','Marcio','ricardomarcio@gmail.com','M','(11) 5535-2760','(11) 66735-2688')
+,('517.801.300-07','Ricardo','Jones','ricardojones@gmail.com','M','(11) 5635-2005','(11) 66735-2535')
+,('875.072.400-29 ','Ricardo','Santos','ricardosantos@gmail.com','M','(11) 5677-2775','(11) 66735-2500')
+,('223.468.530-38','Ricardo','Marco','ricardomarcs@gmail.com','M','(11) 5677-2555','(11) 66735-2540')
+,('209.858.610-88','Ana','Clara','anaclara@gmail.com','F','(11) 4444-2555','(11) 66745-2440')
+,('758.362.000-76','Ana','Freitas','anafreitas@gmail.com','F','(11) 4444-2665','(11) 66745-2343')
+,('170.163.100-86','Ana','Paula','anapaula@gmail.com','F','(11) 4455-2665','(11) 64445-2343')
+,('968.908.530-16','Ana','Fernanda','anaf@gmail.com','F','(11) 4566-2665','(11) 64485-2343')
+,('292.030.190-06','Ana','Aparecida','anaap@gmail.com','F','(11) 4666-2555','(11) 67485-2673')
+,('884.782.080-46','Ana','Fonseca','anaaff@gmail.com','F','(11) 5556-2555','(11) 53785-2673')
+,('416.394.060-00','Ana','Lima','anaalima@gmail.com','F','(11) 5545-2555','(11) 53766-2673')
+,('513.354.900-86','Ana','Rosa','anaarosa@gmail.com','F','(11) 5888-2555','(11) 53999-2673')
+,('907.737.160-50','Ana','Aparecida','anaaapaa@gmail.com','F','(11) 5558-2995','(11) 53999-2373')
+,('545.816.970-00','Ana','Silva','anasilva@gmail.com','F','(11) 5646-2995','(11) 53999-2773')
+,('419.747.730-94','Bruno','Silva','brunosilva@gmail.com','M','(11) 4446-2995','(11) 54449-2773')
+,('562.588.330-04','Bruno','Santos','brunossantosa@gmail.com','M','(11) 4566-2995','(11) 53349-2773')
+,('522.318.700-88','Bruno','Costa','brunocosta@gmail.com','M','(11) 5555-2995','(11) 54449-2773')
+,('979.585.080-69','Bruno','Caprio','brunocaprio@gmail.com','M','(11) 5466-2995','(11) 54422-2773')
+,('435.656.180-51','Bruno','Marco','brunomarco@gmail.com','M','(11) 5553-2995','(11) 54332-2773')
+,('566.466.240-97','Bruno','Fontes','brunofonto@gmail.com','M','(11) 5676-2995','(11) 54555-2773')
+,('137.937.770-65','Bruno','Carlos','bcarlos@gmail.com','M','(11) 5535-2995','(11) 54222-2773')
+,('284.566.660-84','Bruno','Fonseca','bffffs@gmail.com','M','(11) 5455-2445','(11) 54222-2666')
+,('647.617.370-77','Bruno','Roberto','bcarlos@gmail.com','M','(11) 5535-2225','(11) 54232-2663')
+,('821.102.930-80','Bruno','Duzz','bcarlos@gmail.com','M','(11) 5535-2495','(11) 54242-2743')
+,('453.832.360-82','Jefferson','Silva','jefferson@gmail.com','M','(11) 5555-2495','(11) 54242-2993')
+,('559.335.080-98','Jefferson','Bastos','jeffersonbb@gmail.com','M','(11) 5558-2495','(11) 54272-2993')
+,('165.465.380-24','Jefferson','Junior','junior52@gmail.com','M','(11) 4448-2325','(11) 53256-2993')
+,('929.990.100-79','Jefferson','Fontes','jf@gmail.com','M','(11) 4648-2325','(11) 59346-2993')
+,('730.828.570-78','Jefferson','Narco','jnarco@gmail.com','M','(11) 5668-2325','(11) 54446-2993')
+,('709.367.110-19','Guilherme','Freitas','freirtaso@gmail.com','M','(11) 5358-2325','(11) 59304-2993')
+,('249.803.920-16','Guilherme','Luis','gluis@gmail.com','M','(11) 7463-2555','(11) 53136-2993')
+,('140.130.060-06','Guilherme','Manenti','glmair@gmail.com','M','(11) 7444-2555','(11) 14423-2993')
+,('416.052.800-70','Guilherme','Roberto','glrobert@gmail.com','M','(11) 3424-2555','(11) 94283-2593')
+,('535.008.270-12','Sam','Porter','sam@gmail.com','M','(11) 3599-2555','(11) 93243-2853')
+,('971.661.560-40','Gabriel','Gabigol','gol@gmail.com','M','(11) 3559-8855','(11) 93243-2888')
+;
+
+insert INTO funcionario(cpf, nome, sobrenome, dataAdmissao, email, cep, logradouro, numero, complemento, bairro, cidade, estado, cargo, telefone, salario, celular)
+values
+('226.093.860-44', 'Jose','Luis', '2019/11/11', 'joseluis@gmail.com', '01127-020', 'Rua Tenente Pena',1, 'casa 1', 'Bom Retiro', 'São Paulo', 'SP', 1, '(11) 2222-4242', 10000, '(11) 94244-9999' )
+,('374.800.860-08', 'Joao','Vitor', '2019/11/11', 'jaovitor@gmail.com', '03802-000', 'Avenida Boturussu',3, 'casa 1', 'Parque Boturussu', 'São Paulo', 'SP', 1, '(11) 6622-4242', 5000, '(11) 98554-9999' )
+,('493.815.740-30', 'Gabriel','Rodrigues', '2019/11/11', 'gabrielrod@gmail.com', '08081-550', 'Rua Mandobi',1, 'casa 1', 'Vila Helena', 'São Paulo', 'SP', 1, '(11) 6442-4242', 10000, '(11) 91214-9999' )
+,('037.305.940-01', 'Gustavo','Rodrigues', '2019/11/11', 'gustavo@gmail.com', '05565-130', 'Rua Juraci Gomes dos Santos',1, 'casa 1', 'Jardim Arpoador', 'São Paulo', 'SP', 1, '(11) 2222-2222', 10000, '(11) 96666-9999')
+,('775.546.080-02', 'Douglas','Costa', '2019/11/11', 'douglas@gmail.com', '04547-040', 'Rua Benedito Archângelo Nepomuceno',1, 'casa 1', 'Vila Olímpia', 'São Paulo', 'SP', 1, '(11) 4442-2232', 10000, '(11) 93333-9999')
+;
+
+select * from funcionario
+
+INSERT INTO `cargo`(nome)
+VALUES
+('Gerente'),
+('Atendente'),
+('Técnico de Manutenção');
+
+
+insert INTO usuarioFuncionario(login, senha, funcionario) values ('jlsilva','s4intseiy4', 6);
+,('joao','123456',2)
+,('Gabriel','123456',3)
+,('Gustavo','123456',4)
+,('Douglas','123456',5)
+;
+
+select * from estacao
+drop table estacao
+INSERT INTO `usuario`(login, senha, cliente)
+VALUES
+('jlsilva', 's4intseiy4', 1),
+('user16', '123456', 18),
+('user17', '123456', 19),
+('user18', '123456', 20),
+('user19', '123456', 21),
+('user20', '123456', 22),
+('user21', '123456', 23),
+('user22', '123456', 24),
+('user23', '123456', 25),
+('user24', '123456', 26),
+('user25', '123456', 27),
+('user26', '123456', 28),
+('user27', '123456', 29),
+('user28', '123456', 30),
+('user29', '123456', 31),
+('user30', '123456', 32),
+('user31', '123456', 33),
+('user32', '123456', 34),
+('user33', '123456', 35),
+('user34', '123456', 36),
+('user35', '123456', 37),
+('user36', '123456', 38),
+('user37', '123456', 39),
+('user38', '123456', 40),
+('user39', '123456', 41),
+('user40', '123456', 42),
+('user41', '123456', 43),
+('user42', '123456', 44),
+('user43', '123456', 45),
+('user44', '123456', 46),
+('user45', '123456', 47),
+('user46', '123456', 48),
+('user47', '123456', 49),
+('user48', '123456', 50),
+('user49', '123456', 51),
+('user50', '123456', 52),
+('joao', 'joao', 2);
+
+
+
+
+
+INSERT INTO fornecedor(cnpj, nome, razaoSocial, cep, logradouro, numero, bairro, cidade, estado,email, telefone, celular)
+VALUES
+('33.041.260/0652-90','Casas Bahia','Bahia eletrodomésticos','08051-560','Rua Padre Orlando Nogueira','123A','Limoeiro','São Paulo','SP','casasbahia@com','(11) 2017-3861','(11) 97324-8273')
+,('59.626.018/0001-46', 'Casa do Lojista', 'Lojista Atacado', '04142-060', 'Travessa Alexandre Polônio', '123','Tatuape','São Paulo', 'SP', 'lojista@hotmail.com','(11) 2101-3134', '(11) 93139-1333')
+,('64.810.263/0001-49', 'Multilaser', 'Multilaser Industrial', '08090-333', 'Av. São Miguel','131','Saúde','São Paulo','SP','multilaser@hotmail.com', '(11) 2999-1313','(11) 93444-8595')
+,('16.462.407/0001-70', 'HP', 'Hp Brasil Industria', '03556-030','Rua Alto do Parnaíba', '290','Cidade Patriarca', 'São Paulo', 'SP', 'hpindustria@hotmail.com', '(11) 2931-9544', '(11) 93534-4924')
+,('39.880.319/0001-94', 'AOC', 'AOC INDUSTRIA', '02372-060', 'Rua Leonel Fernandes', '1','Tremembé','São Paulo', 'SP', 'aoc@hotmail.com','(11) 4244-3134', '(11) 91229-1333')
+,('26.142.484/0001-05', 'Logitech', 'Logitech INDUSTRIA', '04376-002', 'Av Paulista', '2','Paulista','São Paulo', 'SP', 'logitech@hotmail.com','(11) 6466-3334', '(11) 91359-1333')
+,('99.343.586/0001-54', 'Americanas', 'Americanas INDUSTRIA', '02316-130', 'Rua André Bloc', '3','Vila Nova Mazzei','São Paulo', 'SP', 'americanas@hotmail.com','(11) 6353-3334', '(11) 95779-1333')
+,('42.363.525/0001-31', 'Cristal', 'Cristal INDUSTRIA', '04412-100', 'Rua Paraíba do Sul', '4','Americanópolis','São Paulo', 'SP', 'cristal@hotmail.com','(11) 4214-3334', '(11) 95679-1333')
+,('32.183.145/0001-61', 'IOC', 'Ioc INDUSTRIA', '01453-010', 'Rua Doutor Mário Ferraz', '5','Jardim Europa','São Paulo', 'SP', 'cristal@hotmail.com','(11) 4244-3334', '(11) 97879-1333')
+,('31.924.435/0001-56', 'Samsung', 'Samsung INDUSTRIA', '01540-050', 'Rua Francisco de Guerra', '6','Cambuci','São Paulo', 'SP', 'sam@hotmail.com','(11) 4535-3334', '(11) 97579-1333')
+,('39.831.069/0001-00', 'Tecnoinfo', 'Tecnoinfo INDUSTRIA', '08470-000', 'Loteamento Cidade Tiradentes', '7','Cidade Tiradentes','São Paulo', 'SP', 'infotec@hotmail.com','(11) 4555-3334', '(11) 97579-1773')
+,('80.665.255/0001-02', 'Inf', 'Inf INDUSTRIA', '01550-100', 'Praça José Abramvezt', '9','Vila Monumento','São Paulo', 'SP', 'inf@hotmail.com','(11) 1235-3664', '(11) 98844-1773')
+,('63.229.907/0001-47', 'Font', 'Font INDUSTRIA', '05855-250', 'Rua Itajai-Mirim', '8','Parque Maria Helena','São Paulo', 'SP', 'fontc@hotmail.com','(11) 4444-3664', '(11) 98994-1773')
+,('87.474.893/0001-95', 'Lorenzeti', 'Lorenzeti INDUSTRIA', '04571-100', 'Praça Professor José Lannes', '10','Cidade Monções','São Paulo', 'SP', 'loorent@hotmail.com','(11) 2444-3664', '(11) 31344-1773')
+,('43.677.705/0001-50', 'Lazo', 'Lazo INDUSTRIA', '08253-370', 'Rua Alexandre Mauro', '11','Conjunto Residencial José Bonifácio','São Paulo', 'SP', 'lazo@hotmail.com','(11) 5356-3664', '(11) 33454-1773')
+,('33.252.851/0001-80', 'Motorola', 'Motorola INDUSTRIA', '03676-040', 'Rua Breno Acioli', '11','Jardim Três Marias','São Paulo', 'SP', 'motorola@hotmail.com','(11) 4255-3664', '(11) 95429-1773')
+,('06.406.831/0001-44', 'VS-400', 'VS400 INDUSTRIA', '05454-160', 'Praça Waldir Azevedo', '11','Vila Ida','São Paulo', 'SP', 'vs300@hotmail.com','(11) 4535-3664', '(11) 34329-1773')
+,('33.390.245/0001-21', 'toshiba', 'toshiba INDUSTRIA', '03446-090', 'Rua Astarte', '12','Vila Carrão','São Paulo', 'SP', 'toshiba@hotmail.com','(11) 4535-3554', '(11) 34329-1333')
+,('95.177.973/0001-07', 'EA', 'EA INDUSTRIA', '03279-240', 'Rua Paulo Bender', '13','Vila Santa Virginia','São Paulo', 'SP', 'ea@hotmail.com','(11) 4245-3554', '(11) 34399-1333')
+,('15.595.444/0001-94', 'Treyarch', 'Treyarch INDUSTRIA', '04205-020', 'Jardim Nilza', '14','Ipiranga','São Paulo', 'SP', 'traya@hotmail.com','(11) 2445-3554', '(11) 38599-1333')
+,('01.478.069/0001-98', 'Mondial', 'Mondial INDUSTRIA', '05146-000', 'Rodovia dos Bandeirantes', '15','Vila Fiat Lux','São Paulo', 'SP', 'mondial@hotmail.com','(11) 2445-7854', '(11) 35356-1333')
+,('80.373.961/0001-80', 'Hyperx', 'Huperx INDUSTRIA', '05833-070', 'Rua da Dança Cigana', '16','Jardim Vaz de Lima','São Paulo', 'SP', 'hx@hotmail.com','(11) 1245-7854', '(11) 52556-1333')
+,('79.114.063/0001-29', 'Actision', 'Activision INDUSTRIA', '08121-500', 'Avenida Pupunha', '17','Jardim Camargo Novo','São Paulo', 'SP', 'ac@hotmail.com','(11) 2323-7844', '(11) 59593-1333')
+,('52.267.516/0001-09', 'Epic GAMES', 'Epic Games INDUSTRIA', '08130-140', 'Rua Desembargador Samuel Francisco Mourão', '18','Cidade Kemel','São Paulo', 'SP', 'epp@hotmail.com','(11) 2523-7844', '(11) 95833-1333')
+,('24.637.045/0001-30', 'Panasonic', 'panasonic INDUSTRIA', '04640-070', 'Rua Heron Domingues', '19','Jardim Cordeiro','São Paulo', 'SP', 'ps@hotmail.com','(11) 4245-7844', '(11) 95883-7333')
+,('87.165.199/0001-96', 'OAC', 'OAC INDUSTRIA', '02939-055', 'Praça Jacinto Alberto', '20','Jardim Cidade Pirituba','São Paulo', 'SP', 'oac@hotmail.com','(11) 4521-3456', '(11) 91883-7333')
+,('54.260.391/0001-02', 'Downy', 'Downy INDUSTRIA', '05396-200', 'Rua Iracema Senna Cerqueira dos Santos', '21','Parque dos Príncipes','São Paulo', 'SP', 'dowmy@hotmail.com','(11) 9311-3456', '(11) 92495-7333')
+,('00.935.153/0001-20', 'Invictus', 'Invictus INDUSTRIA', '05798-190', 'Rua Jaipur', '22','Jardim Avenida','São Paulo', 'SP', 'invitctus@hotmail.com','(11) 9424-3456', '(11) 95835-7333')
+,('94.710.218/0001-83', 'Havok', 'Havok INDUSTRIA', '05187-160', 'Rua Daniel Faria Gonçalvez', '23','Jardim Ipanema (Zona Oeste)','São Paulo', 'SP', 'havok@hotmail.com','(11) 5354-3456', '(11) 91385-7333')
+,('17.836.388/0001-68', 'Forttrek', 'Forttrek INDUSTRIA', '04837-150', 'Rua São Roque do Paraguaçu', '24','Vila Quintana','São Paulo', 'SP', 'forttrek@hotmail.com','(11) 5424-3456', '(11) 52555-7333')
+,('48.353.454/0001-72', 'Gupy', 'Gupy INDUSTRIA', '02561-110', 'Rua Cecília Maierovitch', '25','Vila Santa Maria','São Paulo', 'SP', 'Gupy@hotmail.com','(11) 5424-4246', '(11) 23555-7333')
+,('16.382.235/0001-25', 'Bemobi', 'Bemobi INDUSTRIA', '04058-030', 'Rua Luiz Lobo Neto', '26','Planalto Paulista','São Paulo', 'SP', 'Bemobi@hotmail.com','(11) 5424-4336', '(11) 25355-7333')
+,('69.143.684/0001-87', 'DP6', 'DP6 INDUSTRIA', '02219-000', 'Avenida Nossa Senhora do Loreto', '27','Vila Medeiros','São Paulo', 'SP', 'DP6@hotmail.com','(11) 1124-4336', '(11) 24555-7333')
+,('10.234.750/0001-81', 'Kobe', 'Kobe INDUSTRIA', '04805-140', 'Rua José Benedito Rocha', '28','Recanto dos Sonhos','São Paulo', 'SP', 'Kobe@hotmail.com','(11) 9994-4436', '(11) 94924-7333')
+,('48.802.758/0001-70', 'QI ao Cubo', 'Cubo INDUSTRIA', '08391-200', 'Rua Açucena', '29','Parque das Flores','São Paulo', 'SP', 'cubo@hotmail.com','(11) 2224-4436', '(11) 99694-7323')
+,('40.529.263/0001-07', 'Cheesecake', 'Cheesecake INDUSTRIA', '08270-090', 'Rua Arraial da Anta', '30','Vila Carmosina','São Paulo', 'SP', 'Cheesecake@hotmail.com','(11) 2224-2436', '(11) 99694-7355')
+,('85.420.154/0001-95', 'Adobe', 'Adobe INDUSTRIA', '04858-360', 'Rua Rocha de Magalhães', '31','Parque Maria Fernandes','São Paulo', 'SP', 'Adobe@hotmail.com','(11) 1414-2436', '(11) 99654-7355')
+,('18.829.454/0001-35', 'Cadence Design Systems do Brasil', 'cadence INDUSTRIA', '02804-000', 'Rua Marcelino Simões', '32','Vila Cruz das Almas','São Paulo', 'SP', 'cadence@hotmail.com','(11) 2234-2436', '(11) 14145-7355')
+,('89.066.853/0001-30', 'eSapiens', 'eSapiens INDUSTRIA', '02804-000', 'Rua Marcelino Simões', '33','Vila Cruz das Almas','São Paulo', 'SP', 'eSapiens@hotmail.com','(11) 4254-2436', '(11) 24555-7355')
+,('91.477.400/0001-48', 'Dito', 'Dito INDUSTRIA', '02269-110', 'Travessa Morubichaba Conforti Faria', '34','Parque Vitória','São Paulo', 'SP', 'eSapiens@hotmail.com','(11) 4249-2436', '(11) 94424-7355')
+,('74.626.423/0001-58', 'Lambda3', 'Lambda3 INDUSTRIA', '05863-325', 'Travessa Aquário', '35','Jardim Imbé','São Paulo', 'SP', 'Lambda3@hotmail.com','(11) 2429-2436', '(11) 94224-7355')
+,('89.408.658/0001-40', 'Data System ', 'Data System  INDUSTRIA', '02225-330', 'Travessa Antônio Sampaio', '36','Jardim Brasil (Zona Norte)','São Paulo', 'SP', 'DataSystem@hotmail.com','(11) 4244-2436', '(11) 53504-7355')
+,('15.439.719/0001-09', 'Aegro', 'Aegro INDUSTRIA', '04928-040', 'Rua Tycho Brahe', '37','Praia Azul','São Paulo', 'SP', 'Aegro@hotmail.com','(11) 4994-2436', '(11) 53504-7424')
+,('47.834.697/0001-60', 'Foregon', 'Foregon INDUSTRIA', '03919-040', 'Rua Varadouro', '38','Jardim Soares','São Paulo', 'SP', 'Foregon@hotmail.com','(11) 2444-2436', '(11) 63464-7424')
+,('85.202.182/0001-36', 'NetGlobe', 'NetGlobe INDUSTRIA', '08490-410', 'Rua João Fernandes Oliveira', '39','Conjunto Residencial Prestes Maia','São Paulo', 'SP', 'NetGlobe@hotmail.com','(11) 4246-2436', '(11) 22454-7424')
+,('10.709.994/0001-73', 'System', 'System INDUSTRIA', '04855-000', 'Rua Alziro Pinheiro Magalhães', '40','Parque São Miguel','São Paulo', 'SP', 'System@hotmail.com','(11) 4246-2577', '(11) 22454-6664')
+,('72.670.272/0001-00', 'Mercado Livre', 'Mercado Livre INDUSTRIA', '03402-015', 'Rua Anicuns', '41','Chácara Califórnia','São Paulo', 'SP', 'MercadoLivre@hotmail.com','(11) 2555-2577', '(11) 96484-6664')
+,('86.349.129/0001-25', 'Intelbras', 'Intelbras INDUSTRIA', '01046-920', 'Avenida Ipiranga 282', '42','Centro','São Paulo', 'SP', 'Intelbras@hotmail.com','(11) 3555-2577', '(11) 96364-6664')
+,('38.633.773/0001-88', 'Oracle', 'Oracle INDUSTRIA', '04617-011', 'Rua Vieira de Morais', '43','Campo Belo','São Paulo', 'SP', 'Oracle@hotmail.com','(11) 3555-2667', '(11) 92524-6664')
+,('95.748.988/0001-88', 'IBM', 'IBM INDUSTRIA', '04811-030', 'Rua Suapéa', '44','Vila Santo Antônio','São Paulo', 'SP', 'IBM@hotmail.com','(11) 3545-2267', '(11) 92524-6524')
+;
+
+
+
+
+ 
+
+
+
+ 
